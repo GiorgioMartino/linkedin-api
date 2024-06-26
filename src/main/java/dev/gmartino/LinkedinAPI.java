@@ -27,7 +27,8 @@ public class LinkedinAPI {
 		// Load JSON from file
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		String jsonString = Files.readString(
-				Path.of(Objects.requireNonNull(classloader.getResource("linkedin_api_all.json"))
+				Path.of(Objects.requireNonNull(classloader.getResource(
+								"source/linkedin_api_all.json"))
 						.getPath()), Charset.defaultCharset());
 
 		JSONArray array = new JSONArray(jsonString);

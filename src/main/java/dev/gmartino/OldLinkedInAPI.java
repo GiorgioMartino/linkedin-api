@@ -14,7 +14,8 @@ public class OldLinkedInAPI {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
 		String jsonString = Files.readString(
-				Path.of(Objects.requireNonNull(classloader.getResource("linkedin_api_all.json"))
+				Path.of(Objects.requireNonNull(classloader.getResource(
+								"source/linkedin_api_all.json"))
 						.getPath()), Charset.defaultCharset());
 		HashSet<String> set = new HashSet<>();
 		HashSet<String> finalSet = new HashSet<>();
