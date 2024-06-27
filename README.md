@@ -13,3 +13,7 @@ Sample API for following companies (paginated)
 ```link
 https://www.linkedin.com/voyager/api/graphql?includeWebMetadata=true&variables=(start:20,count:20,paginationToken:null,pagedListComponent:urn:li:fsd_profilePagedListComponent:(ACoAACsPj_UBJmC5UVsOXrWeLh7u77aQ8GZSMV4,INTERESTS_VIEW_DETAILS,urn:li:fsd_profileTabSection:COMPANIES_INTERESTS,NONE,en_US))&queryId=voyagerIdentityDashProfileComponents.a8c56b67fec7bf025d839566cbd89385
 ```
+
+# TODO
+- [X] Handle excluding companies
+- [ ] Create and handle `exclude_strict.csv`
