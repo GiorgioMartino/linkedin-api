@@ -46,19 +46,22 @@ public class LinkedinAPI {
 
         directIDSearch(jsonString);
 
-        Map<String, String> finalCompanies = removeExcludedCompanies(classloader);
+        Map<String, String> finalCompanies = removeExcludedCompanies(classloader, "exclude_companies/exclude.csv");
+        Map<String, String> finalCompaniesStrict = removeExcludedCompanies(classloader, "exclude_companies/exclude_strict.csv");
 
-        generateOutput(finalCompanies.keySet());
+        generateOutput(finalCompanies.keySet(), "normal");
+        generateOutput(finalCompaniesStrict.keySet(), "strict");
 
         writeToCSV();
 
         System.out.println("---------------- SUMMARY ----------------");
         System.out.println("Found " + companiesMap.size() + " companies");
-        System.out.println("Kept " + finalCompanies.size() + " companies");
+        System.out.println("Kept " + finalCompanies.size() + " companies for normal");
+        System.out.println("Kept " + finalCompaniesStrict.size() + " companies for strict");
     }
 
-    private static Map<String, String> removeExcludedCompanies(ClassLoader classloader) throws IOException {
-        Reader in = new FileReader(Objects.requireNonNull(classloader.getResource("exclude_companies/exclude.csv")).getPath());
+    private static Map<String, String> removeExcludedCompanies(ClassLoader classloader, String fileName) throws IOException {
+        Reader in = new FileReader(Objects.requireNonNull(classloader.getResource(fileName)).getPath());
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .setHeader("Company")
@@ -68,13 +71,13 @@ public class LinkedinAPI {
         Iterable<CSVRecord> records = csvFormat.parse(in);
         List<String> companiesToExclude = new ArrayList<>();
 
-        System.out.println("---------------- Excluding companies ----------------");
+//        System.out.println("---------------- Excluding companies ----------------");
         for (CSVRecord record : records) {
             String company = record.get("Company");
             companiesToExclude.add(company);
-            System.out.println(company);
+//            System.out.println(company);
         }
-        System.out.println("Excluded " + companiesToExclude.size() + " companies");
+//        System.out.println("Excluded " + companiesToExclude.size() + " companies");
 
         Map<String, String> finalCompanies = new HashMap<>();
 
@@ -104,14 +107,14 @@ public class LinkedinAPI {
         }
     }
 
-    private static void generateOutput(Set<String> ids) {
+    private static void generateOutput(Set<String> ids, String type) {
         String link1 = " https://www.linkedin.com/jobs/search/?f_C=";
         String link2 = "&geoId=91000000&keywords=software%20engineer&location=European%20Union&origin=JOB_SEARCH_PAGE_JOB_FILTER&refresh=true";
 
         String joined = String.join("%2C", ids);
-        System.out.println("---------------- JOINED PARAMS ----------------");
+        System.out.println("---------------- " + type + " JOINED PARAMS ----------------");
         System.out.println(joined);
-        System.out.println("---------------- LINK ----------------");
+        System.out.println("----------------" + type + " LINK ----------------");
         System.out.println(link1 + joined + link2);
 
     }
@@ -127,11 +130,11 @@ public class LinkedinAPI {
         }
         set.forEach(s -> finalSet.add(s.substring(19, s.length() - 1)));
 
-        System.out.println("---------------- Not found IDs ----------------");
-        finalSet.forEach(id -> {
-            if (!companiesMap.containsKey(id))
-                System.out.println(id);
-        });
+//        System.out.println("---------------- Not found IDs ----------------");
+//        finalSet.forEach(id -> {
+//            if (!companiesMap.containsKey(id))
+//                System.out.println(id);
+//        });
     }
 
     private static void handleV1(JSONObject obj) {
