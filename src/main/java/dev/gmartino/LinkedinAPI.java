@@ -6,27 +6,50 @@ import org.apache.commons.csv.CSVRecord;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LinkedinAPI {
 
     private static final Map<String, String> companiesMap = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
-        // Load JSON from file
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+
+        String dir = "single_files/v2_30_oct_24/";
+        String fullDir = Objects.requireNonNull(classloader.getResource(dir)).getPath();
+
+        Set<String> files = Stream.of(Objects.requireNonNull(new File(fullDir).listFiles()))
+                .filter(file -> !file.isDirectory())
+                .map(File::getName)
+                .sorted()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+//        files.forEach(System.out::println);
+
+        files.forEach(file -> {
+            try {
+                loadJSONFromFile(classloader, dir.concat(file));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        extractInfo(classloader);
+    }
+
+    private static void loadJSONFromFile(ClassLoader classloader, String fileName) throws IOException {
+        // Load JSON from file
         String jsonString = Files.readString(
                 Path.of(Objects.requireNonNull(classloader.getResource(
-                                "source/linkedin_api_all.json"))
+                                fileName))
                         .getPath()), Charset.defaultCharset());
 
         JSONArray array = new JSONArray(jsonString);
@@ -44,8 +67,10 @@ public class LinkedinAPI {
                 handleV1(obj);
         }
 
-        directIDSearch(jsonString);
+        directIDSearch(jsonString, fileName);
+    }
 
+    private static void extractInfo(ClassLoader classloader) throws IOException {
         Map<String, String> finalCompanies = removeExcludedCompanies(classloader, "exclude_companies/exclude.csv");
         Map<String, String> finalCompaniesStrict = removeExcludedCompanies(classloader, "exclude_companies/exclude_strict.csv");
 
@@ -119,7 +144,7 @@ public class LinkedinAPI {
 
     }
 
-    private static void directIDSearch(String jsonString) {
+    private static void directIDSearch(String jsonString, String fileName) {
         HashSet<String> set = new HashSet<>();
         HashSet<String> finalSet = new HashSet<>();
 
@@ -130,11 +155,11 @@ public class LinkedinAPI {
         }
         set.forEach(s -> finalSet.add(s.substring(19, s.length() - 1)));
 
-//        System.out.println("---------------- Not found IDs ----------------");
-//        finalSet.forEach(id -> {
-//            if (!companiesMap.containsKey(id))
-//                System.out.println(id);
-//        });
+        System.out.println(String.format("---------------- Not found IDs in %s ----------------", fileName));
+        finalSet.forEach(id -> {
+            if (!companiesMap.containsKey(id))
+                System.out.println(id);
+        });
     }
 
     private static void handleV1(JSONObject obj) {
@@ -149,6 +174,7 @@ public class LinkedinAPI {
                     try {
                         findCompany(elements, j);
                     } catch (Exception e) {
+                        System.out.println(e.getMessage());
                     }
                 }
             }
@@ -165,12 +191,13 @@ public class LinkedinAPI {
 
     private static void findCompany(JSONArray elements, int j) {
         //		System.out.println("Searching company " + j);
+        JSONObject text = null;
         try {
             JSONObject element = elements.getJSONObject(j);
             JSONObject elemComp = element.getJSONObject("components");
             JSONObject entityComponent = elemComp.getJSONObject("entityComponent");
             JSONObject titleV2 = entityComponent.getJSONObject("titleV2");
-            JSONObject text = titleV2.getJSONObject("text");
+            text = titleV2.getJSONObject("text");
             JSONObject attributesV2 = text.getJSONArray("attributesV2").getJSONObject(0);
             JSONObject detailData = attributesV2.getJSONObject("detailData");
             JSONObject stringFieldReference = detailData.getJSONObject("stringFieldReference");
@@ -180,8 +207,9 @@ public class LinkedinAPI {
             //			System.out.println("Found company " + id + " with value " + value);
             companiesMap.put(id, value);
         } catch (Exception e) {
-            //			System.out.println("EEEEEEEEEEEEEEEEEEEEEEEE Error searching company " + j);
-            //			System.out.println(e.getMessage());
+            System.out.println("EEEEEEEEEEEEEEEEEEEEEEEE Error searching company " + j);
+            System.out.println(e.getMessage());
+            System.out.println(text);
         }
     }
 
