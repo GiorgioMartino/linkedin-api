@@ -18,4 +18,4 @@ https://www.linkedin.com/voyager/api/graphql?includeWebMetadata=true&variables=(
 - [X] Handle excluding companies
 - [X] Create and handle `exclude_strict.csv`
 - [X] Handle multiple files
-- [ ] Fix not found IDs
+- [X] Fix not found IDs

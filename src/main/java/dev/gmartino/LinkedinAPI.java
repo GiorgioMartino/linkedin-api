@@ -160,6 +160,7 @@ public class LinkedinAPI {
             if (!companiesMap.containsKey(id))
                 System.out.println(id);
         });
+        System.out.println();
     }
 
     private static void handleV1(JSONObject obj) {
@@ -191,13 +192,13 @@ public class LinkedinAPI {
 
     private static void findCompany(JSONArray elements, int j) {
         //		System.out.println("Searching company " + j);
-        JSONObject text = null;
+        JSONObject entityComponent = null;
         try {
             JSONObject element = elements.getJSONObject(j);
             JSONObject elemComp = element.getJSONObject("components");
-            JSONObject entityComponent = elemComp.getJSONObject("entityComponent");
+            entityComponent = elemComp.getJSONObject("entityComponent");
             JSONObject titleV2 = entityComponent.getJSONObject("titleV2");
-            text = titleV2.getJSONObject("text");
+            JSONObject text = titleV2.getJSONObject("text");
             JSONObject attributesV2 = text.getJSONArray("attributesV2").getJSONObject(0);
             JSONObject detailData = attributesV2.getJSONObject("detailData");
             JSONObject stringFieldReference = detailData.getJSONObject("stringFieldReference");
@@ -207,10 +208,26 @@ public class LinkedinAPI {
             //			System.out.println("Found company " + id + " with value " + value);
             companiesMap.put(id, value);
         } catch (Exception e) {
-            System.out.println("EEEEEEEEEEEEEEEEEEEEEEEE Error searching company " + j);
-            System.out.println(e.getMessage());
-            System.out.println(text);
+//            System.out.println("EEEEEEEEEEEEEEEEEEEEEEEE Error searching company " + j);
+//            System.out.println(e.getMessage());
+            searchIdFromError(entityComponent);
         }
+    }
+
+    public static void searchIdFromError(JSONObject entityComponent) {
+        JSONObject titleV2 = entityComponent.getJSONObject("titleV2");
+        JSONObject text = titleV2.getJSONObject("text");
+        String value = text.getString("text");
+        value = value.substring(0, value.length() - 1);
+
+        JSONObject image = entityComponent.getJSONObject("image");
+        JSONObject attributes = image.getJSONArray("attributes").getJSONObject(0);
+        JSONObject detailData = attributes.getJSONObject("detailData");
+        String companyLogo = detailData.getString("*companyLogo");
+        String id = companyLogo.substring(19);
+
+//        System.out.println("Found company " + id + " with value " + value);
+        companiesMap.put(id, value);
     }
 
 }
