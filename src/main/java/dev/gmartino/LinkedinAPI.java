@@ -73,9 +73,11 @@ public class LinkedinAPI {
     private static void extractInfo(ClassLoader classloader) throws IOException {
         Map<String, String> finalCompanies = removeExcludedCompanies(classloader, "exclude_companies/exclude.csv");
         Map<String, String> finalCompaniesStrict = removeExcludedCompanies(classloader, "exclude_companies/exclude_strict.csv");
+        Map<String, String> finalCompaniesNotInStrict = onlyNotExcludedStrict(finalCompanies, finalCompaniesStrict);
 
         generateOutput(finalCompanies.keySet(), "normal");
         generateOutput(finalCompaniesStrict.keySet(), "strict");
+        generateOutput(finalCompaniesNotInStrict.keySet(), "not-in-strict");
 
         writeToCSV();
 
@@ -83,6 +85,14 @@ public class LinkedinAPI {
         System.out.println("Found " + companiesMap.size() + " companies");
         System.out.println("Kept " + finalCompanies.size() + " companies for normal");
         System.out.println("Kept " + finalCompaniesStrict.size() + " companies for strict");
+        System.out.println("Kept " + finalCompaniesNotInStrict.size() + " companies for not-in-strict");
+
+    }
+
+    private static Map<String, String> onlyNotExcludedStrict(Map<String, String> finalCompanies, Map<String, String> finalCompaniesStrict) {
+        return finalCompanies.entrySet().stream()
+                .filter(entry -> !finalCompaniesStrict.containsKey(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private static Map<String, String> removeExcludedCompanies(ClassLoader classloader, String fileName) throws IOException {
@@ -155,12 +165,12 @@ public class LinkedinAPI {
         }
         set.forEach(s -> finalSet.add(s.substring(19, s.length() - 1)));
 
-        System.out.println(String.format("---------------- Not found IDs in %s ----------------", fileName));
-        finalSet.forEach(id -> {
-            if (!companiesMap.containsKey(id))
-                System.out.println(id);
-        });
-        System.out.println();
+//        System.out.println(String.format("---------------- Not found IDs in %s ----------------", fileName));
+//        finalSet.forEach(id -> {
+//            if (!companiesMap.containsKey(id))
+//                System.out.println(id);
+//        });
+//        System.out.println();
     }
 
     private static void handleV1(JSONObject obj) {

@@ -19,3 +19,4 @@ https://www.linkedin.com/voyager/api/graphql?includeWebMetadata=true&variables=(
 - [X] Create and handle `exclude_strict.csv`
 - [X] Handle multiple files
 - [X] Fix not found IDs
+- [X] Create link with only excluded from strict
